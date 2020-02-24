@@ -1,6 +1,10 @@
 package neural
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/pkg/errors"
+)
 
 // Edge - связь между нейронами
 type Edge struct {
@@ -21,9 +25,9 @@ type Network struct {
 	eLayers []EdgeLayer
 }
 
-// recalc - пересчитать значения (суммы) нейронов
-func (nn *Network) recalc(f func(float64) float64) {
-	var renewed map[*Neuron]struct{}
+// Recalc - пересчитать значения (суммы) нейронов
+func (nn *Network) Recalc(f func(float64) float64) {
+	renewed := make(map[*Neuron]struct{})
 
 	for _, layer := range nn.eLayers {
 		for _, edge := range layer {
@@ -85,4 +89,28 @@ func (nn *Network) String() string {
 	}
 
 	return result
+}
+
+// SetInput - задать значения входного слоя
+func (nn *Network) SetInput(values ...float64) error {
+	if len(values) != len(nn.nLayers[0]) {
+		return errors.New("")
+	}
+
+	for i, value := range values {
+		nn.nLayers[0][i].Sum = value
+	}
+
+	return nil
+}
+
+// GetOutput - получить значения выходного слоя
+func (nn *Network) GetOutput() []float64 {
+	var output []float64
+
+	for _, neuron := range nn.nLayers[len(nn.nLayers)-1] {
+		output = append(output, neuron.GetValue(Functions[Sigm]))
+	}
+
+	return output
 }

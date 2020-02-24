@@ -15,7 +15,7 @@ const (
 	Tahm
 )
 
-var functions = map[Function]func(float64) float64{
+var Functions = map[Function]func(float64) float64{
 	Sigm: func(x float64) float64 { return 1 / (1 + math.Pow(math.E, -x)) },
 	Tahm: func(x float64) float64 { return (math.Pow(math.E, 2*x) - 1) / (math.Pow(math.E, 2*x) + 1) },
 }
@@ -33,5 +33,5 @@ func (n *Neuron) GetValue(f func(float64) float64) float64 {
 }
 
 func (n Neuron) String() string {
-	return fmt.Sprint(n.GetValue(functions[Sigm]))
+	return fmt.Sprint(n.GetValue(Functions[Sigm]))
 }
