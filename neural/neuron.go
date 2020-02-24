@@ -11,19 +11,20 @@ type Function int
 const (
 	// Sigm - сигмоидальная функция
 	Sigm Function = iota
-	// Tahm - гиперболический тангенс
-	Tahm
+	// Tanh - гиперболический тангенс
+	Tanh
 )
 
 var Functions = map[Function]func(float64) float64{
 	Sigm: func(x float64) float64 { return 1 / (1 + math.Pow(math.E, -x)) },
-	Tahm: func(x float64) float64 { return (math.Pow(math.E, 2*x) - 1) / (math.Pow(math.E, 2*x) + 1) },
+	Tanh: func(x float64) float64 { return (math.Pow(math.E, 2*x) - 1) / (math.Pow(math.E, 2*x) + 1) },
 }
 
 // Neuron - нейрон
 type Neuron struct {
-	Sum  float64
-	Bias float64
+	Sum   float64
+	Bias  float64
+	Error float64
 }
 
 // GetValue - получение значения нейрона

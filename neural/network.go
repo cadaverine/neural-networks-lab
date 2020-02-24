@@ -25,11 +25,26 @@ type Network struct {
 	eLayers []EdgeLayer
 }
 
+// StringifyEdges - распечатать связи
+func (n *Network) StringifyEdges() string {
+	var result string
+
+	for i, layer := range n.eLayers {
+		result += fmt.Sprintf("edges layer %v:\n", i)
+
+		for j, edge := range layer {
+			result += fmt.Sprintf("%v: %v\n", j, edge)
+		}
+	}
+
+	return result
+}
+
 // Recalc - пересчитать значения (суммы) нейронов
-func (nn *Network) Recalc(f func(float64) float64) {
+func (n *Network) Recalc(f func(float64) float64) {
 	renewed := make(map[*Neuron]struct{})
 
-	for _, layer := range nn.eLayers {
+	for _, layer := range n.eLayers {
 		for _, edge := range layer {
 			if _, ok := renewed[edge.To]; !ok {
 				edge.To.Sum = 0
@@ -43,7 +58,7 @@ func (nn *Network) Recalc(f func(float64) float64) {
 
 // Construct - конструктор сети (пример входных параметров: [3, 4, 4, 4, 3])
 func Construct(nums []int) *Network {
-	var nn Network
+	var n Network
 
 	for i, num := range nums {
 		var neurons NeuronLayer
@@ -52,28 +67,28 @@ func Construct(nums []int) *Network {
 			neurons = append(neurons, &Neuron{})
 		}
 
-		nn.nLayers = append(nn.nLayers, neurons)
+		n.nLayers = append(n.nLayers, neurons)
 
 		if i > 0 {
 			var edges EdgeLayer
 
-			for _, from := range nn.nLayers[i-1] {
-				for _, to := range nn.nLayers[i] {
+			for _, from := range n.nLayers[i-1] {
+				for _, to := range n.nLayers[i] {
 					edges = append(edges, &Edge{from, to, 1})
 				}
 			}
 
-			nn.eLayers = append(nn.eLayers, edges)
+			n.eLayers = append(n.eLayers, edges)
 		}
 	}
 
-	return &nn
+	return &n
 }
 
-func (nn *Network) String() string {
+func (n *Network) String() string {
 	var result string
 
-	for i, layer := range nn.nLayers {
+	for i, layer := range n.nLayers {
 		result += fmt.Sprintf("layer %v: ", i+1)
 
 		for j, n := range layer {
@@ -85,32 +100,54 @@ func (nn *Network) String() string {
 				result += ";\n"
 			}
 		}
-
 	}
 
 	return result
 }
 
+func (n *Network) GetInputLayer() NeuronLayer {
+	return n.nLayers[0]
+}
+
+func (n *Network) GetOutputLayer() NeuronLayer {
+	return n.nLayers[len(n.nLayers)-1]
+}
+
 // SetInput - задать значения входного слоя
-func (nn *Network) SetInput(values ...float64) error {
-	if len(values) != len(nn.nLayers[0]) {
-		return errors.New("")
+func (n *Network) SetInput(values ...float64) error {
+	inputLayer := n.GetInputLayer()
+
+	if len(values) != len(inputLayer) {
+		return errors.New("values number must be equal to input layer length")
 	}
 
 	for i, value := range values {
-		nn.nLayers[0][i].Sum = value
+		inputLayer[i].Sum = value
 	}
 
 	return nil
 }
 
 // GetOutput - получить значения выходного слоя
-func (nn *Network) GetOutput() []float64 {
+func (n *Network) GetOutput() []float64 {
 	var output []float64
 
-	for _, neuron := range nn.nLayers[len(nn.nLayers)-1] {
+	for _, neuron := range n.GetOutputLayer() {
 		output = append(output, neuron.GetValue(Functions[Sigm]))
 	}
 
 	return output
+}
+
+// Learning - обучение нейроннной сети
+func (n *Network) Learning(inputs []float64, outputs []float64) error {
+	if len(inputs) != len(n.GetInputLayer()) {
+		return errors.New("inputs number must be equal to input layer length")
+	}
+
+	if len(outputs) != len(n.GetOutputLayer()) {
+		return errors.New("outputs number must be equal to output layer length")
+	}
+
+	return nil
 }
